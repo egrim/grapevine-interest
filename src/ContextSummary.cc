@@ -42,6 +42,11 @@ void ContextSummary::setHopLimit(int hopLimit)
     this->hopLimit = hopLimit;
 }
 
+void ContextSummary::decrementHopLimit()
+{
+    this->hopLimit--;
+}
+
 void ContextSummary::setId(int id)
 {
     this->id = id;

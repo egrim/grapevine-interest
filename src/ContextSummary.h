@@ -16,6 +16,7 @@ public:
     int getNumContextItems() const;
     simtime_t getTimestamp() const;
     void setHopLimit(int hopLimit);
+    void decrementHopLimit();
     void setId(int id);
     void setNumContextItems(int numContextItems);
     void setTimestamp(simtime_t timestamp);

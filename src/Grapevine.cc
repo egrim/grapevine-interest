@@ -97,6 +97,7 @@ void Grapevine::socketDatagramArrived(int sockId, void *yourPtr, cMessage *msg, 
     ContextSummaryMapIterator iter;
     for (iter=summaries.begin(); iter != summaries.end(); iter++) {
         ContextSummary summary = iter->second;
+        summary.decrementHopLimit();
         int id = summary.getId();
         if (id != getHostId()) {
             if (receivedContextSummaries.count(id) > 0) {
