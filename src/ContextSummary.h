@@ -3,7 +3,6 @@
 
 #include <omnetpp.h>
 
-
 class ContextSummary: public cObject {
 protected:
     int id;
@@ -21,5 +20,8 @@ public:
     void setNumContextItems(int numContextItems);
     void setTimestamp(simtime_t timestamp);
 };
+
+typedef std::map<int, ContextSummary> ContextSummaryMap;
+typedef ContextSummaryMap::const_iterator ContextSummaryMapIterator;
 
 #endif /* CONTEXTSUMMARY_H_ */

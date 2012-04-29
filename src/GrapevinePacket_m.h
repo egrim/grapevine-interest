@@ -16,7 +16,6 @@
 // cplusplus {{
 #include <map>
     #include "ContextSummary.h"
-    typedef std::map<int, ContextSummary> ContextSummaryMap;
 // }}
 
 

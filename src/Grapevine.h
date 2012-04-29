@@ -10,9 +10,6 @@
 
 #define BEACON_PORT 4498
 
-typedef std::map<int, ContextSummary> ContextSummaryMap;
-typedef std::map<int, ContextSummary>::const_iterator ContextSummaryMapIterator;
-
 class Grapevine: public UDPAppBase, public UDPSocket::CallbackInterface {
 protected:
     double beaconStartTime;

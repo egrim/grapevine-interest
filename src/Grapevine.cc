@@ -61,7 +61,7 @@ void Grapevine::handleMessage(cMessage *msg) {
 void Grapevine::sendBeacon() {
     GrapevinePacket *pkt = new GrapevinePacket("beacon");
     pkt->setPayloadSize((int)par("payloadSize"));
-    pkt->setByteLength(100);
+
     ContextSummaryMap summaries = getSummaries();
     ContextSummaryMapIterator iter;
     for (iter = summaries.begin(); iter != summaries.end(); iter++) {
@@ -72,18 +72,8 @@ void Grapevine::sendBeacon() {
         }
     }
 
+    pkt->updatePacketLength();
     beaconSendSocket.send(pkt);
-    // TODO: stub
-    //        GrapevinePacket *pkt = new GrapevinePacket("Beacon");
-    //        // Size = 40 byte bloomier data structure overhead
-    //        //      + 5 bytes per table entry * numTableEntries (with 20% more slots than context items)
-    //        //      + 4 byte payload size indicator
-    //        //      + payloadSize (allowed to vary - e.g.: uniform(100,200))
-    //        pkt->setByteLength(40+5*numContextItems*1.20+4+(int)par("payloadSize"));
-    //
-    //        ContextKeys keys
-    //        pkt->setContextMap(contextMap);
-    //        beaconSendSocket.send(pkt);
 }
 
 void Grapevine::scheduleNextBeacon() {

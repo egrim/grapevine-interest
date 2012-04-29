@@ -1,18 +1,3 @@
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-// 
-// You should have received a copy of the GNU Lesser General Public License
-// along with this program.  If not, see http://www.gnu.org/licenses/.
-// 
-
 #include "GrapevinePacket.h"
 
 Register_Class(GrapevinePacket);
@@ -27,5 +12,24 @@ void GrapevinePacket::addContextSummary(ContextSummary summary)
 {
     summaries_var[summary.getId()] = summary;
 }
+
+void GrapevinePacket::updatePacketLength() {
+    int size(0);
+    size += 4;                  // 4 bytes to store length of payload
+    size += getPayloadSize();   // number of payload bytes
+
+    size += 40;                 // 40 bytes for bloomier filter summary overhead
+
+    ContextSummaryMap summaries = getSummaries();
+    ContextSummaryMapIterator iter;
+    for (iter=summaries.begin(); iter != summaries.end(); iter++) {
+        ContextSummary summary = iter->second;
+        size += 5 * summary.getNumContextItems() * 1.20; // 5 bytes per table entry * number of entries (with 20% more entries than context items)
+    }
+
+    setByteLength(size);
+}
+
+
 
 

@@ -26,5 +26,7 @@ public:
     }
 
     virtual void addContextSummary(ContextSummary summary);
+
+    virtual void updatePacketLength();
 };
 #endif /* GRAPEVINEPACKET_H_ */
