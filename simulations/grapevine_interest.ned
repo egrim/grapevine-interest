@@ -27,7 +27,7 @@ network Grapevine_interest
         double playgroundSizeX;
         double playgroundSizeY;
     submodules:
-        host[numHosts]: MobileHost {
+        host[numHosts]: MobileManetRoutingHost {
             parameters:
                 @display("i=device/pocketpc_s;r=,,#707070");
         }
