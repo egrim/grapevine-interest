@@ -1,0 +1,11 @@
+# Partial Tkenv config file -- see $HOME/.tkenvrc as well
+inspector "Grapevine_interest.host[4].udpApp[0]" "Grapevine" "3" "602x310+22+436:normal"
+inspector "Grapevine_interest" "Grapevine_interest" "2" "672x283+5+27:normal"
+inspector "Grapevine_interest.host[4]" "MobileHost" "2" "627x283+47+73:normal"
+inspector "Grapevine_interest.host[4].networkLayer" "NetworkLayer" "2" "699x283+68+96:normal"
+inspector "Grapevine_interest.host[0].udpApp[0]" "UDPBasicBurst" "3" "665x310+106+502:normal"
+inspector "Grapevine_interest.host[1].udpApp[0]" "UDPBasicBurst" "3" "661x310+720+27:normal"
+inspector "Grapevine_interest.host[9].udpApp[0]" "UDPBasicBurst" "3" "675x310+688+380:normal"
+inspector "simulation.scheduled-events.UDPBasicAppData-0" "UDPPacket" "1" "515x313+68+96:normal"
+inspector "simulation.scheduled-events.UDPBasicAppData-6" "UDPPacket" "1" "512x313+257+303:normal"
+
