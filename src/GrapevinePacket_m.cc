@@ -33,6 +33,7 @@ void doUnpacking(cCommBuffer *, T& t) {
 GrapevinePacket_Base::GrapevinePacket_Base(const char *name, int kind) : cPacket(name,kind)
 {
     this->payloadSize_var = 0;
+    this->trackInterest_var = false;
 }
 
 GrapevinePacket_Base::GrapevinePacket_Base(const GrapevinePacket_Base& other) : cPacket(other)
@@ -55,6 +56,8 @@ GrapevinePacket_Base& GrapevinePacket_Base::operator=(const GrapevinePacket_Base
 void GrapevinePacket_Base::copy(const GrapevinePacket_Base& other)
 {
     this->payloadSize_var = other.payloadSize_var;
+    this->trackInterest_var = other.trackInterest_var;
+    this->interest_var = other.interest_var;
     this->summaries_var = other.summaries_var;
 }
 
@@ -62,6 +65,8 @@ void GrapevinePacket_Base::parsimPack(cCommBuffer *b)
 {
     cPacket::parsimPack(b);
     doPacking(b,this->payloadSize_var);
+    doPacking(b,this->trackInterest_var);
+    doPacking(b,this->interest_var);
     doPacking(b,this->summaries_var);
 }
 
@@ -69,6 +74,8 @@ void GrapevinePacket_Base::parsimUnpack(cCommBuffer *b)
 {
     cPacket::parsimUnpack(b);
     doUnpacking(b,this->payloadSize_var);
+    doUnpacking(b,this->trackInterest_var);
+    doUnpacking(b,this->interest_var);
     doUnpacking(b,this->summaries_var);
 }
 
@@ -80,6 +87,26 @@ int GrapevinePacket_Base::getPayloadSize() const
 void GrapevinePacket_Base::setPayloadSize(int payloadSize)
 {
     this->payloadSize_var = payloadSize;
+}
+
+bool GrapevinePacket_Base::getTrackInterest() const
+{
+    return trackInterest_var;
+}
+
+void GrapevinePacket_Base::setTrackInterest(bool trackInterest)
+{
+    this->trackInterest_var = trackInterest;
+}
+
+InterestSummary& GrapevinePacket_Base::getInterest()
+{
+    return interest_var;
+}
+
+void GrapevinePacket_Base::setInterest(const InterestSummary& interest)
+{
+    this->interest_var = interest;
 }
 
 ContextSummaryMap& GrapevinePacket_Base::getSummaries()
@@ -140,7 +167,7 @@ const char *GrapevinePacketDescriptor::getProperty(const char *propertyname) con
 int GrapevinePacketDescriptor::getFieldCount(void *object) const
 {
     cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? 2+basedesc->getFieldCount(object) : 2;
+    return basedesc ? 4+basedesc->getFieldCount(object) : 4;
 }
 
 unsigned int GrapevinePacketDescriptor::getFieldTypeFlags(void *object, int field) const
@@ -153,9 +180,11 @@ unsigned int GrapevinePacketDescriptor::getFieldTypeFlags(void *object, int fiel
     }
     static unsigned int fieldTypeFlags[] = {
         FD_ISEDITABLE,
+        FD_ISEDITABLE,
+        FD_ISCOMPOUND | FD_ISCOBJECT,
         FD_ISCOMPOUND,
     };
-    return (field>=0 && field<2) ? fieldTypeFlags[field] : 0;
+    return (field>=0 && field<4) ? fieldTypeFlags[field] : 0;
 }
 
 const char *GrapevinePacketDescriptor::getFieldName(void *object, int field) const
@@ -168,9 +197,11 @@ const char *GrapevinePacketDescriptor::getFieldName(void *object, int field) con
     }
     static const char *fieldNames[] = {
         "payloadSize",
+        "trackInterest",
+        "interest",
         "summaries",
     };
-    return (field>=0 && field<2) ? fieldNames[field] : NULL;
+    return (field>=0 && field<4) ? fieldNames[field] : NULL;
 }
 
 int GrapevinePacketDescriptor::findField(void *object, const char *fieldName) const
@@ -178,7 +209,9 @@ int GrapevinePacketDescriptor::findField(void *object, const char *fieldName) co
     cClassDescriptor *basedesc = getBaseClassDescriptor();
     int base = basedesc ? basedesc->getFieldCount(object) : 0;
     if (fieldName[0]=='p' && strcmp(fieldName, "payloadSize")==0) return base+0;
-    if (fieldName[0]=='s' && strcmp(fieldName, "summaries")==0) return base+1;
+    if (fieldName[0]=='t' && strcmp(fieldName, "trackInterest")==0) return base+1;
+    if (fieldName[0]=='i' && strcmp(fieldName, "interest")==0) return base+2;
+    if (fieldName[0]=='s' && strcmp(fieldName, "summaries")==0) return base+3;
     return basedesc ? basedesc->findField(object, fieldName) : -1;
 }
 
@@ -192,9 +225,11 @@ const char *GrapevinePacketDescriptor::getFieldTypeString(void *object, int fiel
     }
     static const char *fieldTypeStrings[] = {
         "int",
+        "bool",
+        "InterestSummary",
         "ContextSummaryMap",
     };
-    return (field>=0 && field<2) ? fieldTypeStrings[field] : NULL;
+    return (field>=0 && field<4) ? fieldTypeStrings[field] : NULL;
 }
 
 const char *GrapevinePacketDescriptor::getFieldProperty(void *object, int field, const char *propertyname) const
@@ -235,7 +270,9 @@ std::string GrapevinePacketDescriptor::getFieldAsString(void *object, int field,
     GrapevinePacket_Base *pp = (GrapevinePacket_Base *)object; (void)pp;
     switch (field) {
         case 0: return long2string(pp->getPayloadSize());
-        case 1: {std::stringstream out; out << pp->getSummaries(); return out.str();}
+        case 1: return bool2string(pp->getTrackInterest());
+        case 2: {std::stringstream out; out << pp->getInterest(); return out.str();}
+        case 3: {std::stringstream out; out << pp->getSummaries(); return out.str();}
         default: return "";
     }
 }
@@ -251,6 +288,7 @@ bool GrapevinePacketDescriptor::setFieldAsString(void *object, int field, int i,
     GrapevinePacket_Base *pp = (GrapevinePacket_Base *)object; (void)pp;
     switch (field) {
         case 0: pp->setPayloadSize(string2long(value)); return true;
+        case 1: pp->setTrackInterest(string2bool(value)); return true;
         default: return false;
     }
 }
@@ -265,9 +303,11 @@ const char *GrapevinePacketDescriptor::getFieldStructName(void *object, int fiel
     }
     static const char *fieldStructNames[] = {
         NULL,
+        NULL,
+        "InterestSummary",
         "ContextSummaryMap",
     };
-    return (field>=0 && field<2) ? fieldStructNames[field] : NULL;
+    return (field>=0 && field<4) ? fieldStructNames[field] : NULL;
 }
 
 void *GrapevinePacketDescriptor::getFieldStructPointer(void *object, int field, int i) const
@@ -280,7 +320,8 @@ void *GrapevinePacketDescriptor::getFieldStructPointer(void *object, int field, 
     }
     GrapevinePacket_Base *pp = (GrapevinePacket_Base *)object; (void)pp;
     switch (field) {
-        case 1: return (void *)(&pp->getSummaries()); break;
+        case 2: return (void *)static_cast<cObject *>(&pp->getInterest()); break;
+        case 3: return (void *)(&pp->getSummaries()); break;
         default: return NULL;
     }
 }

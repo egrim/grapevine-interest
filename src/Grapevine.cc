@@ -34,9 +34,16 @@ void Grapevine::initialize() {
         beaconAddress = IPAddressResolver().resolve(beaconAddressString);
     }
 
-    myContextSummary.setId(getHostId());
-    myContextSummary.setNumContextItems((int)par("numLocalContextItemsAvailable"));
-    myContextSummary.setHopLimit((int)par("hopLimit"));
+    contextManager.setHostId(getHostId());
+    contextManager.setHopLimit(par("hopLimit").doubleValue());
+    contextManager.setTimeLimit(par("timeLimit"));
+    contextManager.setNumLocalContextItemsAvailable(par("numLocalContextItemsAvailable").doubleValue());
+    contextManager.setNumContextItemsOfInterest(par("numContextItemsOfInterest").doubleValue());
+    contextManager.setTrackInterest(par("trackInterest").boolValue());
+
+    if (contextManager.getTrackInterest()) {
+        contextManager.setNumInterestSummaryBins(par("numInterestSummaryBins").doubleValue());
+    }
 
     beaconSendSocket.setOutputGate(gate("udpOut"));
     beaconSendSocket.bind(BEACON_PORT);
@@ -46,7 +53,7 @@ void Grapevine::initialize() {
     beaconReceiveSocket.bind(BEACON_PORT);
     beaconReceiveSocket.setCallbackObject(this, NULL);
 
-    scheduleAt(beaconStartTime+(double)par("beaconIntervalJitter"), &beaconTimer);
+    scheduleAt(beaconStartTime+par("beaconIntervalJitter").doubleValue(), &beaconTimer);
 }
 
 void Grapevine::handleMessage(cMessage *msg) {
@@ -60,78 +67,65 @@ void Grapevine::handleMessage(cMessage *msg) {
 
 void Grapevine::sendBeacon() {
     GrapevinePacket *pkt = new GrapevinePacket("beacon");
-    pkt->setPayloadSize((int)par("payloadSize"));
+    pkt->setPayloadSize(par("payloadSize").doubleValue());
 
-    ContextSummaryMap summaries = getSummaries();
-    ContextSummaryMapIterator iter;
-    for (iter = summaries.begin(); iter != summaries.end(); iter++) {
-        ContextSummary summary = iter->second;
-        if (summary.getHopLimit() > 0) {
-            EV << "Adding context summary with id=" << summary.getId() << " to outgoing packet\n";
-            pkt->addContextSummary(summary);
-        }
-    }
+    contextManager.preparePacket(pkt);
 
     pkt->updatePacketLength();
+    EV << "Packet prepared for sending" << endl;
+    printPacket(pkt);
     beaconSendSocket.send(pkt);
 }
 
 void Grapevine::scheduleNextBeacon() {
-    scheduleAt(simTime()+beaconInterval+(double)par("beaconIntervalJitter"), &beaconTimer);
+    scheduleAt(simTime()+beaconInterval+par("beaconIntervalJitter").doubleValue(), &beaconTimer);
 }
 
 void Grapevine::socketDatagramArrived(int sockId, void *yourPtr, cMessage *msg, UDPControlInfo *ctrl) {
     GrapevinePacket *pkt = check_and_cast<GrapevinePacket *>(msg);
     printPacket(pkt, ctrl);
-    ContextSummaryMap summaries = pkt->getSummaries();
-    ContextSummaryMapIterator iter;
-    for (iter=summaries.begin(); iter != summaries.end(); iter++) {
-        ContextSummary summary = iter->second;
-        summary.decrementHopLimit();
-        int id = summary.getId();
-        if (id != getHostId()) {
-            if (receivedContextSummaries.count(id) > 0) {
-                // Already present, should we update?
-                ContextSummary existing = receivedContextSummaries[id];
-                if (summary.getTimestamp() > existing.getTimestamp()) {
-                    receivedContextSummaries[id] = summary;
-                    EV << "Updating summary with id=" << id << endl;
-                } else {
-                    EV << "Discarding non-new summary with id=" << id << endl;
-                }
-            } else {
-                receivedContextSummaries[id] = summary;
-                EV << "Adding summary with id=" << id << endl;
-            }
+    contextManager.handlePacket(pkt);
+}
+
+void Grapevine::printPacket(GrapevinePacket *msg, UDPControlInfo *ctrl) {
+    EV << msg << "  (" << msg->getByteLength() << " bytes)" << endl;
+    EV << "Packet contents" << endl;
+    EV << "   Payload size: " << msg->getPayloadSize() << endl;
+    if (msg->getTrackInterest()) {
+        EV << "   Tracking interest: true" << endl;
+        EV << "      Labels: ";
+        std::set<int> labels = msg->getInterest().debugInfo.labels;
+        for (std::set<int>::const_iterator iter = labels.begin(); iter != labels.end(); iter++) {
+            EV << *iter << " ";
         }
-    }
-}
-
-void Grapevine::printPacket(cPacket *msg, UDPControlInfo *ctrl) {
-    IPvXAddress srcAddr = ctrl->getSrcAddr();
-    IPvXAddress destAddr = ctrl->getDestAddr();
-    int srcPort = ctrl->getSrcPort();
-    int destPort = ctrl->getDestPort();
-
-    ev  << msg << "  (" << msg->getByteLength() << " bytes)" << endl;
-    ev  << srcAddr << " :" << srcPort << " --> " << destAddr << ":" << destPort << endl;
-}
-
-// TODO: should I be using pointers to avoid unnecessary copies of the summaries?
-ContextSummaryMap Grapevine::getSummaries() {
-    ContextSummaryMap summaries;
-    ContextSummaryMapIterator iter;
-    for (iter=receivedContextSummaries.begin();
-         iter != receivedContextSummaries.end();
-         iter++) {
-            ContextSummary summary = iter->second;
-            summaries[summary.getId()] = summary;
+        EV << endl;
+    } else {
+        EV << "   Tracking interest: false" << endl;
     }
 
-    // Update timestamp on my summary and include in list
-    myContextSummary.setTimestamp(simTime());
-    summaries[myContextSummary.getId()] = myContextSummary;
-    return summaries;
+    ContextSummaryMap summaries = msg->getSummaries();
+    if (summaries.size() > 0) {
+        EV << "   " << "Context Summaries: true" << endl;
+        for (ContextSummaryMapIterator iter = summaries.begin(); iter != summaries.end(); iter++) {
+            EV << "      Context labels: ";
+            ContextMap map = iter->second.debugGetContextSummary();
+            for (std::map<int, int>::const_iterator iter2 = map.begin(); iter2 != map.end(); iter2++) {
+                EV << iter2->first << " ";
+            }
+            EV << endl;
+        }
+    } else {
+        EV << "   Context Summaries: false" << endl;
+    }
+
+
+    if (ctrl != NULL) {
+        IPvXAddress srcAddr = ctrl->getSrcAddr();
+        IPvXAddress destAddr = ctrl->getDestAddr();
+        int srcPort = ctrl->getSrcPort();
+        int destPort = ctrl->getDestPort();
+        EV << srcAddr << " :" << srcPort << " --> " << destAddr << ":" << destPort << endl;
+    }
 }
 
 int Grapevine::getHostId() {

@@ -4,7 +4,7 @@
 #include "GrapevinePacket_m.h"
 class GrapevinePacket: public GrapevinePacket_Base {
 private:
-    void copy(const GrapevinePacket& other);
+    void copy(const GrapevinePacket& other) {}
 
 public:
     GrapevinePacket(const char *name = NULL, int kind = 0) :
@@ -25,6 +25,7 @@ public:
         return new GrapevinePacket(*this);
     }
 
+    virtual void setInterest(InterestSummary summary);
     virtual void addContextSummary(ContextSummary summary);
 
     virtual void updatePacketLength();

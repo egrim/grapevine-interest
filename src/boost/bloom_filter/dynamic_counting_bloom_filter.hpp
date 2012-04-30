@@ -186,6 +186,42 @@ public:
         }
     }
 
+    void max(const T& t, size_t max) {
+        apply_hash_type::max(t, max, this->bits, this->num_bins());
+    }
+
+    const size_t get_bin_bits(const size_t bin_number) const {
+        const size_t pos = bin_number / bins_per_slot();
+        const size_t offset_bits = bin_number % bins_per_slot() * bits_per_bin();
+        const size_t target_bits = bits[pos] >> offset_bits & mask();
+        return target_bits;
+    }
+
+    void set_bin_bits(const size_t bin_number, const size_t final_bits) {
+        const size_t pos = bin_number / bins_per_slot();
+        const size_t offset_bits = bin_number % bins_per_slot() * bits_per_bin();
+        bits[pos] &= ~(mask() << offset_bits);
+        bits[pos] |= (final_bits << offset_bits);
+    }
+
+    void decrementAll(size_t decrement_by) {
+        for (size_t i = 0; i < num_bins(); i++) {
+            const size_t target_bits = get_bin_bits(i);
+            const size_t final_bits = (target_bits < decrement_by) ? 0 : target_bits - decrement_by;
+            set_bin_bits(i, final_bits);
+        }
+    }
+
+    void mergeMax(const this_type& other) {
+        for (size_t i = 0; i < num_bins(); i++) {
+            const size_t target_bits = get_bin_bits(i);
+            const size_t other_bits = other.get_bin_bits(i);
+            if (other_bits > target_bits) {
+                set_bin_bits(i, other_bits);
+            }
+        }
+    }
+
     bool probably_contains(const T& t) const {
         return apply_hash_type::contains(t, this->bits, this->num_bins());
     }

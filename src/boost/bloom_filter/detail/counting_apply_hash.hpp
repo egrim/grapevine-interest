@@ -39,6 +39,16 @@ struct increment {
     }
 };
 
+struct maximize {
+    size_t operator()(const size_t val, const size_t max) {
+        if (val < max) {
+            return max;
+        } else {
+            return val;
+        }
+    }
+};
+
 template<size_t N, class CBF, class Op = void>
 struct BloomOp {
     typedef typename boost::mpl::at_c<typename CBF::hash_function_type, N>::type Hash;
@@ -90,6 +100,14 @@ struct counting_apply_hash {
         counting_apply_hash<N - 1, CBF>::remove(t, slots);
     }
 
+    static void max(const typename CBF::value_type& t, const size_t max,
+            typename CBF::bucket_type& slots, const size_t num_bins) {
+        BloomOp<N, CBF, maximize> maxer(t, slots, num_bins);
+        maxer.update(slots, max);
+
+        counting_apply_hash<N - 1, CBF>::max(t, max, slots);
+    }
+
     static bool contains(const typename CBF::value_type& t,
             const typename CBF::bucket_type& slots, const size_t num_bins) {
         BloomOp<N, CBF> checker(t, slots, num_bins);
@@ -110,6 +128,12 @@ struct counting_apply_hash<0, CBF> {
             typename CBF::bucket_type& slots, const size_t num_bins) {
         BloomOp<0, CBF, decrement> remover(t, slots, num_bins);
         remover.update(slots, 0);
+    }
+
+    static void max(const typename CBF::value_type& t, const size_t max,
+            typename CBF::bucket_type& slots, const size_t num_bins) {
+        BloomOp<0, CBF, maximize> maxer(t, slots, num_bins);
+        maxer.update(slots, max);
     }
 
     static bool contains(const typename CBF::value_type& t,

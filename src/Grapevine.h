@@ -6,7 +6,7 @@
 #include <UDPAppBase.h>
 #include <UDPSocket.h>
 
-#include "ContextSummary.h"
+#include "ContextManager.h"
 
 #define BEACON_PORT 4498
 
@@ -21,8 +21,7 @@ protected:
 
     cMessage beaconTimer;
 
-    ContextSummary myContextSummary;
-    ContextSummaryMap receivedContextSummaries;
+    ContextManager contextManager;
 
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);
@@ -31,10 +30,9 @@ protected:
     virtual void scheduleNextBeacon();
 
     virtual void socketDatagramArrived(int sockId, void *yourPtr, cMessage *msg, UDPControlInfo *ctrl);
-    void printPacket(cPacket *msg, UDPControlInfo *ctrl);
+    void printPacket(GrapevinePacket *msg, UDPControlInfo *ctrl=NULL);
 
     int getHostId();
-    ContextSummaryMap getSummaries();
 };
 
 #endif /* GRAPEVINE_H_ */

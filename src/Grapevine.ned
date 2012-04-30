@@ -11,8 +11,13 @@ simple Grapevine like UDPApp
         string beaconAddress = default("Broadcast");
         
         int numLocalContextItemsAvailable;
+        int numInterestSummaryBins;
         int hopLimit;
+        double timeLimit @unit("s");
         volatile int payloadSize;
+        
+        bool trackInterest = default(false);
+        int numContextItemsOfInterest = default(numLocalContextItemsAvailable);
         
     gates:
         input udpIn @labels(UDPControlInfo/up);

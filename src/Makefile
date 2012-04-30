@@ -2,7 +2,7 @@
 # OMNeT++/OMNEST Makefile for grapevine_interest
 #
 # This file was generated with the command:
-#  opp_makemake -f --deep -I/Users/egrim/Projects/omnet_workspace/inetmanet/src/networklayer/arp -I/Users/egrim/Projects/omnet_workspace/inetmanet/src/transport/sctp -I/Users/egrim/Projects/omnet_workspace/inetmanet/src/world -I/Users/egrim/Projects/omnet_workspace/inetmanet/src/transport/contract -I/Users/egrim/Projects/omnet_workspace/inetmanet/src/linklayer/mfcore -I/Users/egrim/Projects/omnet_workspace/inetmanet/src/applications/udpapp -I/Users/egrim/Projects/omnet_workspace/inetmanet/src/linklayer/ethernet -I/Users/egrim/Projects/omnet_workspace/inetmanet/src/util -I/Users/egrim/Projects/omnet_workspace/inetmanet/src/networklayer/ted -I/Users/egrim/Projects/omnet_workspace/inetmanet/src/linklayer/ieee80211/mac -I/Users/egrim/Projects/omnet_workspace/inetmanet/src/networklayer/queue -I/Users/egrim/Projects/omnet_workspace/inetmanet/src/networklayer/ipv6 -I/Users/egrim/Projects/omnet_workspace/inetmanet/src/networklayer/common -I/Users/egrim/Projects/omnet_workspace/inetmanet/src/applications/pingapp -I/Users/egrim/Projects/omnet_workspace/inetmanet/src/networklayer/ldp -I/Users/egrim/Projects/omnet_workspace/inetmanet/src/linklayer/radio/errormodel -I/Users/egrim/Projects/omnet_workspace/inetmanet/src/transport/tcp -I/Users/egrim/Projects/omnet_workspace/inetmanet/src/util/headerserializers -I/Users/egrim/Projects/omnet_workspace/inetmanet/src/networklayer/rsvp_te -I/Users/egrim/Projects/omnet_workspace/inetmanet/src/transport/udp -I/Users/egrim/Projects/omnet_workspace/inetmanet/src/networklayer/ipv4 -I/Users/egrim/Projects/omnet_workspace/inetmanet/src/networklayer/icmpv6 -I/Users/egrim/Projects/omnet_workspace/inetmanet/src/base -I/Users/egrim/Projects/omnet_workspace/inetmanet/src/networklayer/contract -I/Users/egrim/Projects/omnet_workspace/inetmanet/src/linklayer/ieee80211/mgmt -I/Users/egrim/Projects/omnet_workspace/inetmanet/src/networklayer/manetrouting/base -I/Users/egrim/Projects/omnet_workspace/inetmanet/src/networklayer/mpls -I/Users/egrim/Projects/omnet_workspace/inetmanet/src/linklayer/contract -L/Users/egrim/Projects/omnet_workspace/inetmanet/out/$(CONFIGNAME)/src -linet -KINETMANET_PROJ=/Users/egrim/Projects/omnet_workspace/inetmanet
+#  opp_makemake -f --deep -I/home/egrim/workspace_omnet/inetmanet/src/networklayer/arp -I/home/egrim/workspace_omnet/inetmanet/src/transport/sctp -I/home/egrim/workspace_omnet/inetmanet/src/world -I/home/egrim/workspace_omnet/inetmanet/src/transport/contract -I/home/egrim/workspace_omnet/inetmanet/src/linklayer/mfcore -I/home/egrim/workspace_omnet/inetmanet/src/applications/udpapp -I/home/egrim/workspace_omnet/inetmanet/src/linklayer/ethernet -I/home/egrim/workspace_omnet/inetmanet/src/util -I/home/egrim/workspace_omnet/inetmanet/src/networklayer/ted -I/home/egrim/workspace_omnet/inetmanet/src/linklayer/ieee80211/mac -I/home/egrim/workspace_omnet/inetmanet/src/networklayer/queue -I/home/egrim/workspace_omnet/inetmanet/src/networklayer/ipv6 -I/home/egrim/workspace_omnet/inetmanet/src/networklayer/common -I/home/egrim/workspace_omnet/inetmanet/src/applications/pingapp -I/home/egrim/workspace_omnet/inetmanet/src/networklayer/ldp -I/home/egrim/workspace_omnet/inetmanet/src/linklayer/radio/errormodel -I/home/egrim/workspace_omnet/inetmanet/src/transport/tcp -I/home/egrim/workspace_omnet/inetmanet/src/util/headerserializers -I/home/egrim/workspace_omnet/inetmanet/src/networklayer/rsvp_te -I/home/egrim/workspace_omnet/inetmanet/src/transport/udp -I/home/egrim/workspace_omnet/inetmanet/src/networklayer/ipv4 -I/home/egrim/workspace_omnet/inetmanet/src/networklayer/icmpv6 -I/home/egrim/workspace_omnet/inetmanet/src/base -I/home/egrim/workspace_omnet/inetmanet/src/networklayer/contract -I/home/egrim/workspace_omnet/inetmanet/src/linklayer/ieee80211/mgmt -I/home/egrim/workspace_omnet/inetmanet/src/networklayer/manetrouting/base -I/home/egrim/workspace_omnet/inetmanet/src/networklayer/mpls -I/home/egrim/workspace_omnet/inetmanet/src/linklayer/contract -L/home/egrim/workspace_omnet/inetmanet/out/$(CONFIGNAME)/src -linet -KINETMANET_PROJ=/home/egrim/workspace_omnet/inetmanet
 #
 
 # Name of target to be created (-o option)
@@ -43,7 +43,11 @@ INCLUDE_PATH = \
     -I$(INETMANET_PROJ)/src/networklayer/manetrouting/base \
     -I$(INETMANET_PROJ)/src/networklayer/mpls \
     -I$(INETMANET_PROJ)/src/linklayer/contract \
-    -I.
+    -I. \
+    -Iboost \
+    -Iboost/bloom_filter \
+    -Iboost/bloom_filter/detail \
+    -Iboost/bloom_filter/hash
 
 # Additional object and library files to link with
 EXTRA_OBJS =
@@ -58,14 +62,21 @@ PROJECTRELATIVE_PATH = src
 O = $(PROJECT_OUTPUT_DIR)/$(CONFIGNAME)/$(PROJECTRELATIVE_PATH)
 
 # Object files for local .cc and .msg files
-OBJS = $O/ContextSummary.o $O/Grapevine.o $O/GrapevinePacket.o $O/GrapevinePacket_m.o
+OBJS = \
+    $O/ContextManager.o \
+    $O/InterestTracker.o \
+    $O/ContextSummary.o \
+    $O/Grapevine.o \
+    $O/GrapevinePacket.o \
+    $O/InterestSummary.o \
+    $O/GrapevinePacket_m.o
 
 # Message files
 MSGFILES = \
     GrapevinePacket.msg
 
 # Other makefile variables (-K)
-INETMANET_PROJ=/Users/egrim/Projects/omnet_workspace/inetmanet
+INETMANET_PROJ=/home/egrim/workspace_omnet/inetmanet
 
 #------------------------------------------------------------------------------
 
@@ -135,21 +146,35 @@ clean:
 	-rm -rf $O
 	-rm -f grapevine_interest grapevine_interest.exe libgrapevine_interest.so libgrapevine_interest.a libgrapevine_interest.dll libgrapevine_interest.dylib
 	-rm -f ./*_m.cc ./*_m.h
+	-rm -f boost/*_m.cc boost/*_m.h
+	-rm -f boost/bloom_filter/*_m.cc boost/bloom_filter/*_m.h
+	-rm -f boost/bloom_filter/detail/*_m.cc boost/bloom_filter/detail/*_m.h
+	-rm -f boost/bloom_filter/hash/*_m.cc boost/bloom_filter/hash/*_m.h
 
 cleanall: clean
 	-rm -rf $(PROJECT_OUTPUT_DIR)
 
 depend:
-	$(MAKEDEPEND) $(INCLUDE_PATH) -f Makefile -P\$$O/ -- $(MSG_CC_FILES)  ./*.cc
+	$(MAKEDEPEND) $(INCLUDE_PATH) -f Makefile -P\$$O/ -- $(MSG_CC_FILES)  ./*.cc boost/*.cc boost/bloom_filter/*.cc boost/bloom_filter/detail/*.cc boost/bloom_filter/hash/*.cc
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
+$O/ContextManager.o: ContextManager.cc \
+	ContextManager.h \
+	ContextSummary.h \
+	GrapevinePacket.h \
+	GrapevinePacket_m.h \
+	InterestSummary.h \
+	InterestTracker.h
 $O/ContextSummary.o: ContextSummary.cc \
 	ContextSummary.h
 $O/Grapevine.o: Grapevine.cc \
+	ContextManager.h \
 	ContextSummary.h \
 	Grapevine.h \
 	GrapevinePacket.h \
 	GrapevinePacket_m.h \
+	InterestSummary.h \
+	InterestTracker.h \
 	$(INETMANET_PROJ)/src/applications/udpapp/UDPAppBase.h \
 	$(INETMANET_PROJ)/src/base/INETDefs.h \
 	$(INETMANET_PROJ)/src/networklayer/contract/IPAddress.h \
@@ -161,8 +186,15 @@ $O/Grapevine.o: Grapevine.cc \
 $O/GrapevinePacket.o: GrapevinePacket.cc \
 	ContextSummary.h \
 	GrapevinePacket.h \
-	GrapevinePacket_m.h
+	GrapevinePacket_m.h \
+	InterestSummary.h
 $O/GrapevinePacket_m.o: GrapevinePacket_m.cc \
 	ContextSummary.h \
-	GrapevinePacket_m.h
+	GrapevinePacket_m.h \
+	InterestSummary.h
+$O/InterestSummary.o: InterestSummary.cc \
+	InterestSummary.h
+$O/InterestTracker.o: InterestTracker.cc \
+	InterestSummary.h \
+	InterestTracker.h
 

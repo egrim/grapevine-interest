@@ -15,6 +15,7 @@
 
 // cplusplus {{
 #include <map>
+    #include "InterestSummary.h"
     #include "ContextSummary.h"
 // }}
 
@@ -26,6 +27,10 @@
  * packet GrapevinePacket {
  *     @customize(true);
  *     int payloadSize;
+ * 
+ *     bool trackInterest = false;
+ *     InterestSummary interest;
+ * 
  *     ContextSummaryMap summaries;
  * };
  * </pre>
@@ -58,6 +63,8 @@ class GrapevinePacket_Base : public ::cPacket
 {
   protected:
     int payloadSize_var;
+    bool trackInterest_var;
+    InterestSummary interest_var;
     ContextSummaryMap summaries_var;
 
   private:
@@ -81,6 +88,11 @@ class GrapevinePacket_Base : public ::cPacket
     // field getter/setter methods
     virtual int getPayloadSize() const;
     virtual void setPayloadSize(int payloadSize);
+    virtual bool getTrackInterest() const;
+    virtual void setTrackInterest(bool trackInterest);
+    virtual InterestSummary& getInterest();
+    virtual const InterestSummary& getInterest() const {return const_cast<GrapevinePacket_Base*>(this)->getInterest();}
+    virtual void setInterest(const InterestSummary& interest);
     virtual ContextSummaryMap& getSummaries();
     virtual const ContextSummaryMap& getSummaries() const {return const_cast<GrapevinePacket_Base*>(this)->getSummaries();}
     virtual void setSummaries(const ContextSummaryMap& summaries);

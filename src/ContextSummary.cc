@@ -15,8 +15,6 @@
 
 #include "ContextSummary.h"
 
-
-
 int ContextSummary::getHopLimit() const
 {
     return hopLimit;
@@ -29,7 +27,7 @@ int ContextSummary::getId() const
 
 int ContextSummary::getNumContextItems() const
 {
-    return numContextItems;
+    return context.size();
 }
 
 simtime_t ContextSummary::getTimestamp() const
@@ -52,13 +50,24 @@ void ContextSummary::setId(int id)
     this->id = id;
 }
 
-void ContextSummary::setNumContextItems(int numContextItems)
-{
-    this->numContextItems = numContextItems;
-}
-
 void ContextSummary::setTimestamp(simtime_t timestamp)
 {
     this->timestamp = timestamp;
+}
+
+void ContextSummary::setContextItem(int label, int value) {
+    context[label] = value;
+}
+
+int ContextSummary::getWireSize() const
+{
+    int size = 0;
+    size += 40; // 40 bytes for bloomier filter parameters
+    size += 5 * getNumContextItems() * 1.20; // 5 bytes per table entry * number of entries (with 20% more entries than context items)
+    return size;
+}
+
+ContextMap ContextSummary::getContextMap() {
+    return context;
 }
 
